@@ -1,6 +1,7 @@
 import datetime
 import json
 import time
+import traceback
 import urllib
 import urllib2
 
@@ -31,14 +32,18 @@ class Match(object):
         return m['n_MatchID']
 
     def update(self, match):
+        # if the match already finishes, then we skip it, because sometimes
+        # it register some wrong content
+        if self.finished:
+            return
         live = match['b_Live']
         finished = match['b_Finished']
         score = match['c_Score']
-        if live and live != self.live:
+        if live and not self.live:
             self.notifications.append(self._notif_live())
             self.score = score
         self.live = live
-        if finished and finished != self.finished:
+        if finished and not self.finished:
             self.notifications.append(self._notif_finish())
         self.finished = finished
         if score != self.score:
@@ -99,12 +104,13 @@ class Slack(object):
             request = urllib2.Request(Slack.URL)
             urllib2.urlopen(request, urllib.urlencode(data), 30)
         except:
+            print traceback.format_exc()
             pass
 
     @staticmethod
     def notify(msgs):
-        # wait 60 before sending out notif
-        time.sleep(60)
+        # wait 30 before sending out notif
+        time.sleep(30)
         for m in msgs:
             print m
             Slack._post(m)
