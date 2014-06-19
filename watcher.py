@@ -112,7 +112,7 @@ class Slack(object):
         # wait 30 before sending out notif
         time.sleep(30)
         for m in msgs:
-            print m
+            print m.encode('ascii', 'ignore')
             Slack._post(m)
 
 
